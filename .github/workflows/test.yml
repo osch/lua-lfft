@@ -1,0 +1,39 @@
+name: test
+
+on: [push]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        luaVersion: ["5.1", "5.2", "5.3", "5.4", "luajit"]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@master
+
+    - uses: leafo/gh-actions-lua@master
+      with:
+        luaVersion: ${{ matrix.luaVersion }}
+
+    - uses: leafo/gh-actions-luarocks@master
+
+    - name: setup 
+      run: |
+        luarocks install carray
+        luarocks make rockspecs/lfft-scm-0.rockspec
+
+    - name: test
+      run: |
+        set -e
+        lua -v
+        cd tests
+        lua test01.lua
+        lua test02.lua
+        cd ../examples
+        lua example01.lua
+        lua example02.lua
+     
